@@ -78,11 +78,6 @@ export const fetchConversations = () => async (dispatch) => {
   }
 };
 
-const saveMessage = async (body) => {
-  const { data } = await axios.post("/api/messages", body);
-  return Promise.resolve(data);
-};
-
 const sendMessage = (data, body) => {
   socket.emit("new-message", {
     message: data.message,
@@ -95,7 +90,7 @@ const sendMessage = (data, body) => {
 // conversationId will be set to null if its a brand new conversation
 export const postMessage = (body) => async (dispatch) => {
   try {
-    const data = await saveMessage(body);
+    const { data } = await axios.post("/api/messages", body);
 
     if (!body.conversationId) {
       dispatch(addConversation(body.recipientId, data.message));
