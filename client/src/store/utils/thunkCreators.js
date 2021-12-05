@@ -5,6 +5,7 @@ import {
   addConversation,
   setNewMessage,
   setSearchedUsers,
+  setReadMessages,
 } from "../conversations";
 import { gotUser, setFetchingStatus } from "../user";
 
@@ -86,6 +87,12 @@ const sendMessage = (data, body) => {
   });
 };
 
+const sendUpdatedReadMessages = (data, body) => {
+  socket.emit("new-read-messages", {
+    convo: data.conversation
+  });
+};
+
 // message format to send: {recipientId, text, conversationId}
 // conversationId will be set to null if its a brand new conversation
 export const postMessage = (body) => async (dispatch) => {
@@ -99,6 +106,16 @@ export const postMessage = (body) => async (dispatch) => {
     }
 
     sendMessage(data, body);
+  } catch (error) {
+    console.error(error);
+  }
+};
+export const putReadMessage = (body) => async (dispatch) => {
+  try {
+    const { data } = await axios.put("/api/messages/read", body);
+
+    dispatch(setReadMessages(data));
+    sendUpdatedReadMessages(data);
   } catch (error) {
     console.error(error);
   }

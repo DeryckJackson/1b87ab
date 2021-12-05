@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const { Op } = require("sequelize");
-const { Conversation, Message } = require("../../db/models");
+const { User, Conversation, Message } = require("../../db/models");
 const onlineUsers = require("../../onlineUsers");
 
 // expects {recipientId, text, conversationId } in body (conversationId will be null if no conversation exists yet)
@@ -51,7 +51,7 @@ router.put("/read", async (req, res, next) => {
       return res.sendStatus(401);
     }
 
-    const senderId = req.user.id;
+    const userId = req.user.id;
     const { recipientId, conversationId, messageId } = req.body;
 
     let conversation = await Conversation.findOne({
@@ -61,7 +61,29 @@ router.put("/read", async (req, res, next) => {
       attributes: ["id"],
       order: [[Message, "createdAt", "ASC"]],
       include: [
-        { model: Message, order: ["createdAt", "ASC"] }
+        { model: Message, order: ["createdAt", "ASC"] },
+        {
+          model: User,
+          as: "user1",
+          where: {
+            id: {
+              [Op.not]: userId,
+            },
+          },
+          attributes: ["id", "username", "photoUrl"],
+          required: false,
+        },
+        {
+          model: User,
+          as: "user2",
+          where: {
+            id: {
+              [Op.not]: userId,
+            },
+          },
+          attributes: ["id", "username", "photoUrl"],
+          required: false,
+        },
       ]
     });
 
@@ -88,7 +110,26 @@ router.put("/read", async (req, res, next) => {
       }
     });
 
-    res.json(conversation.toJSON());
+    const convoJSON = conversation.toJSON();
+
+    if (convoJSON.user1) {
+      convoJSON.otherUser = convoJSON.user1;
+      delete convoJSON.user1;
+    } else if (convoJSON.user2) {
+      convoJSON.otherUser = convoJSON.user2;
+      delete convoJSON.user2;
+    }
+
+    if (onlineUsers.includes(convoJSON.otherUser.id)) {
+      convoJSON.otherUser.online = true;
+    } else {
+      convoJSON.otherUser.online = false;
+    }
+
+    convoJSON.latestMessageText = convoJSON.messages[convoJSON.messages.length - 1].text;
+
+
+    res.json(convoJSON);
   } catch (error) {
     next(error);
   }
