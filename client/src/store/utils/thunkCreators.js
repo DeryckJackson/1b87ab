@@ -110,9 +110,14 @@ export const postMessage = (body) => async (dispatch) => {
     console.error(error);
   }
 };
-export const putReadMessage = (body) => async (dispatch) => {
+export const putReadMessage = (messageId, otherUserId) => async (dispatch) => {
   try {
+    const body = {
+      messageId,
+      recipientId: otherUserId
+    };
     const { data } = await axios.put("/api/messages/read", body);
+    console.log(data);
 
     dispatch(setReadMessages(data));
     sendUpdatedReadMessages(data);

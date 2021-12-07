@@ -52,11 +52,14 @@ router.put("/read", async (req, res, next) => {
     }
 
     const userId = req.user.id;
-    const { recipientId, conversationId, messageId } = req.body;
+    const { recipientId, messageId } = req.body;
 
     let conversation = await Conversation.findOne({
       where: {
-        id: conversationId
+        [Op.or]: {
+          user1Id: recipientId,
+          user2Id: recipientId,
+        },
       },
       attributes: ["id"],
       order: [[Message, "createdAt", "ASC"]],
@@ -87,43 +90,39 @@ router.put("/read", async (req, res, next) => {
       ]
     });
 
-    let readIds = [];
+    let readMessageIds = [];
 
     for (let message of conversation.messages) {
-      if (!messageId !== message.id && recipientId === message.senderId) {
-        message.read = true;
-        readIds.push(message.id);
+      if (!messageId !== message.id && recipientId === message.senderId
+        && !message.recipientHasRead) {
+        message.recipientHasRead = true;
+        readMessageIds.push(message.id);
       }
 
       if (messageId === message.id) {
-        message.read = true;
-        readIds.push(message.id);
+        message.recipientHasRead = true;
+        readMessageIds.push(message.id);
         break;
       }
     }
 
-    await Message.update({ read: true }, {
+    await Message.update({ recipientHasRead: true }, {
       where: {
         id: {
-          [Op.in]: readIds
+          [Op.in]: readMessageIds
         }
       }
     });
 
     const convoJSON = conversation.toJSON();
 
+    // set a property "otherUser" so that frontend will have easier access
     if (convoJSON.user1) {
       convoJSON.otherUser = convoJSON.user1;
       delete convoJSON.user1;
     } else if (convoJSON.user2) {
       convoJSON.otherUser = convoJSON.user2;
       delete convoJSON.user2;
-    }
-
-    if (onlineUsers.includes(convoJSON.otherUser.id)) {
-      convoJSON.otherUser.online = true;
-    } else {
-      convoJSON.otherUser.online = false;
     }
 
     convoJSON.latestMessageText = convoJSON.messages[convoJSON.messages.length - 1].text;
