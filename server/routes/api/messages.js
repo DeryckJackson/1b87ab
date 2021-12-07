@@ -37,7 +37,7 @@ router.post("/", async (req, res, next) => {
       senderId,
       text,
       conversationId: conversation.id,
-      read: false
+      recipientHasRead: false
     });
     res.json({ message, sender });
   } catch (error) {
@@ -52,14 +52,11 @@ router.put("/read", async (req, res, next) => {
     }
 
     const userId = req.user.id;
-    const { recipientId, messageId } = req.body;
+    const { conversationId, messageId, recipientId } = req.body;
 
     let conversation = await Conversation.findOne({
       where: {
-        [Op.or]: {
-          user1Id: recipientId,
-          user2Id: recipientId,
-        },
+        id: conversationId
       },
       attributes: ["id"],
       order: [[Message, "createdAt", "ASC"]],

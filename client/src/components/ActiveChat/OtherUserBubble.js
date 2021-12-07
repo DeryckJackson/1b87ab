@@ -35,8 +35,8 @@ const useStyles = makeStyles(() => ({
 
 const OtherUserBubble = (props) => {
   const classes = useStyles();
-  const { id, text, time, otherUser, recipientHasRead, putReadMessage } = props;
-
+  const { time, otherUser, message, putReadMessage } = props;
+  const { id, text, conversationId, recipientHasRead } = message;
 
   const elementRef = useRef(null);
 
@@ -47,7 +47,12 @@ const OtherUserBubble = (props) => {
 
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting && !recipientHasRead) {
-        putReadMessage(id, otherUser.id);
+        const reqBody = {
+          messageId: id,
+          recipientId: otherUser.id,
+          conversationId
+        };
+        putReadMessage(reqBody);
       }
     }, {
       root: null,
@@ -59,7 +64,7 @@ const OtherUserBubble = (props) => {
 
     return () => observer.disconnect();
 
-  }, [elementRef, id, otherUser.id, putReadMessage, recipientHasRead]);
+  }, [elementRef, id, otherUser.id, putReadMessage, recipientHasRead, conversationId]);
 
   return (
     <Box className={classes.root} ref={elementRef}>
@@ -78,8 +83,8 @@ const OtherUserBubble = (props) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    putReadMessage: (messageId, otherUserId) => {
-      dispatch(putReadMessage(messageId, otherUserId));
+    putReadMessage: (body) => {
+      dispatch(putReadMessage(body));
     }
   };
 };

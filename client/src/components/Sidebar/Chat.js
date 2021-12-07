@@ -1,5 +1,5 @@
-import React from "react";
-import { Box } from "@material-ui/core";
+import React, { useMemo } from "react";
+import { Box, Typography } from "@material-ui/core";
 import { BadgeAvatar, ChatContent } from "../Sidebar";
 import { makeStyles } from "@material-ui/core/styles";
 import { setActiveChat } from "../../store/activeConversation";
@@ -15,14 +15,29 @@ const useStyles = makeStyles((theme) => ({
     alignItems: "center",
     "&:hover": {
       cursor: "grab"
-    }
+    },
+  },
+  unreadMessageNumber: {
+    marginLeft: "auto",
+    marginRight: 5,
+    backgroundColor: "rgb(63,146,255)",
+    color: "white",
+    fontSize: "14px",
+    lineHeight: "24px",
+    height: "24px",
+    width: "24px",
+    borderRadius: "50%",
+    textAlign: "center",
   }
 }));
 
 const Chat = (props) => {
   const classes = useStyles();
   const { conversation } = props;
-  const { otherUser } = conversation;
+  const { otherUser, messages } = conversation;
+  const unreadMessageCount = useMemo(() => {
+    return messages.filter(msg => msg.senderId === otherUser.id && !msg.recipientHasRead).length;
+  }, [messages, otherUser.id]);
 
   const handleClick = async (conversation) => {
     await props.setActiveChat(conversation.otherUser.username);
@@ -36,7 +51,12 @@ const Chat = (props) => {
         online={otherUser.online}
         sidebar={true}
       />
-      <ChatContent conversation={conversation} />
+      <ChatContent conversation={conversation} unreadMessageCount={unreadMessageCount} />
+      {unreadMessageCount > 0 &&
+        <Typography className={classes.unreadMessageNumber}>
+          {unreadMessageCount}
+        </Typography>
+      }
     </Box>
   );
 };
