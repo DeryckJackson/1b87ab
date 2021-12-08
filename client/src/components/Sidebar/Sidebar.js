@@ -31,8 +31,6 @@ const Sidebar = (props) => {
       <Search handleChange={handleChange} />
       {conversations
         .filter((conversation) => conversation.otherUser.username.includes(searchTerm))
-        .slice(0)
-        .reverse()
         .map((conversation) => {
           return <Chat conversation={conversation} key={conversation.otherUser.username} />;
         })}

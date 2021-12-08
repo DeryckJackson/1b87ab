@@ -19,7 +19,6 @@ const ADD_CONVERSATION = "ADD_CONVERSATION";
 // ACTION CREATORS
 
 export const gotConversations = (conversations) => {
-  console.log(conversations);
   return {
     type: GET_CONVERSATIONS,
     conversations,
