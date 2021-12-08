@@ -87,6 +87,14 @@ const sendMessage = (data, body) => {
   });
 };
 
+const sendReadMessage = (body) => {
+  socket.emit("new-read-message", {
+    messageId: body.messageId,
+    recipientId: body.recipientId,
+    conversationId: body.conversationId
+  });
+};
+
 // message format to send: {recipientId, text, conversationId}
 // conversationId will be set to null if its a brand new conversation
 export const postMessage = (body) => async (dispatch) => {
@@ -109,6 +117,7 @@ export const putReadMessage = (body) => async (dispatch) => {
     const { data } = await axios.put("/api/messages/read", body);
 
     dispatch(setReadMessages(data));
+    sendReadMessage(body);
   } catch (error) {
     console.error(error);
   }
