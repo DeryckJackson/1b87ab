@@ -89,6 +89,7 @@ router.put("/read", async (req, res, next) => {
 
     let readMessageIds = [];
 
+    // Sets messages as read up to recieved messageId
     for (let message of conversation.messages) {
       if (!messageId !== message.id && recipientId === message.senderId
         && !message.recipientHasRead) {

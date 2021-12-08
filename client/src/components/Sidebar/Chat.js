@@ -35,6 +35,7 @@ const Chat = (props) => {
   const classes = useStyles();
   const { conversation } = props;
   const { otherUser, messages } = conversation;
+
   const unreadMessageCount = useMemo(() => {
     return messages.filter(msg => msg.senderId === otherUser.id && !msg.recipientHasRead).length;
   }, [messages, otherUser.id]);

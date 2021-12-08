@@ -40,6 +40,7 @@ const OtherUserBubble = (props) => {
 
   const elementRef = useRef(null);
 
+  // Tracks if chat message is in frame, if it is dispatches action to server to update it as read
   useEffect(() => {
     const node = elementRef.current;
 
@@ -54,11 +55,13 @@ const OtherUserBubble = (props) => {
         };
         putReadMessage(reqBody);
       }
-    }, {
-      root: null,
-      rootMargin: "0px",
-      threshold: 1.0
-    });
+    },
+      // options for IntersectionObserver 
+      {
+        root: null,
+        rootMargin: "0px",
+        threshold: 1.0
+      });
 
     observer.observe(node);
 
