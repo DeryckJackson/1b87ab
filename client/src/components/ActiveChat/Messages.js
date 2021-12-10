@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Box } from "@material-ui/core";
 import { SenderBubble, OtherUserBubble } from "../ActiveChat";
 import moment from "moment";
 
 const Messages = (props) => {
   const { messages, otherUser, userId } = props;
-  const readMessages = messages.filter((msg) => msg.recipientHasRead && msg.senderId === userId);
+  const readMessages = useMemo(() => {
+    return messages.filter((msg) => msg.recipientHasRead && msg.senderId === userId);
+  }, [messages, userId]);
   const lastMessageReadTime = readMessages[readMessages.length - 1]?.createdAt;
 
   return (

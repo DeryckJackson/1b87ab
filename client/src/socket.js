@@ -24,11 +24,9 @@ socket.on("connect", () => {
     store.dispatch(setNewMessage(data.message, data.sender));
   });
 
-  socket.on("recieve-read-message", (data) => {
+  socket.on("new-read-message", (data) => {
     store.dispatch(setReadMessages(
-      data.messageId,
-      data.recipientId,
-      data.conversationId
+      data.convo
     ));
   });
 });

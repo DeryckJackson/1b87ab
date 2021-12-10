@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const { parse } = require("dotenv");
 const { Op } = require("sequelize");
 const { User, Conversation, Message } = require("../../db/models");
 const onlineUsers = require("../../onlineUsers");
@@ -67,7 +68,7 @@ router.put("/read", async (req, res, next) => {
           as: "user1",
           where: {
             id: {
-              [Op.not]: userId,
+              [Op.or]: [userId, recipientId]
             },
           },
           attributes: ["id", "username", "photoUrl"],
@@ -78,7 +79,7 @@ router.put("/read", async (req, res, next) => {
           as: "user2",
           where: {
             id: {
-              [Op.not]: userId,
+              [Op.or]: [userId, recipientId]
             },
           },
           attributes: ["id", "username", "photoUrl"],
@@ -86,6 +87,10 @@ router.put("/read", async (req, res, next) => {
         },
       ]
     });
+
+    if (conversation.user1.id !== recipientId && conversation.user2.id !== recipientId) {
+      return res.sendStatus(401);
+    }
 
     let readMessageIds = [];
 

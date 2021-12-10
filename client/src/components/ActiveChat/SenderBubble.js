@@ -45,7 +45,7 @@ const SenderBubble = (props) => {
         </Box>
       </Box>
       {createdAt === lastMessageReadTime &&
-        <Avatar alt={otherUser.username} src={otherUser.photoUrl} className={classes.avatar}></Avatar>
+        <Avatar alt={otherUser.username} src={otherUser.photoUrl} className={classes.avatar} />
       }
     </>
   );

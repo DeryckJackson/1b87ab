@@ -36,29 +36,6 @@ export const replaceUpdatedConvoToStore = (state, updatedConvo) => {
   });
 };
 
-export const markMessagesAsReadToStore = (state, payload) => {
-  return state.map((convo) => {
-    if (convo.id === payload.conversationId) {
-      const convoCopy = { ...convo };
-
-      convoCopy.messages = convo.messages.map(msg => {
-        if (msg.senderId === payload.recipientId) {
-          msg.recipientHasRead = true;
-          return msg;
-        } else if (msg.id === payload.messageId) {
-          msg.recipientHasRead = true;
-          return msg;
-        } else {
-          return msg;
-        }
-      });
-      return convoCopy;
-    } else {
-      return convo;
-    }
-  });
-};
-
 export const addOnlineUserToStore = (state, id) => {
   return state.map((convo) => {
     if (convo.otherUser.id === id) {
