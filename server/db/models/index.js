@@ -17,6 +17,9 @@ User.hasMany(GroupUser);
 Group.hasMany(GroupUser);
 GroupUser.belongsTo(User);
 GroupUser.belongsTo(Group);
+Group.belongsTo(User, {
+  foreignKey: "ownerId"
+});
 
 module.exports = {
   User,
