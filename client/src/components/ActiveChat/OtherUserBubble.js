@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Box, Typography, Avatar } from "@material-ui/core";
+import { putReadMessage } from "../../store/utils/thunkCreators";
+import { connect } from "react-redux";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -33,9 +35,42 @@ const useStyles = makeStyles(() => ({
 
 const OtherUserBubble = (props) => {
   const classes = useStyles();
-  const { text, time, otherUser } = props;
+  const { time, otherUser, message, putReadMessage } = props;
+  const { id, text, conversationId, recipientHasRead } = message;
+
+  const elementRef = useRef(null);
+
+  // Tracks if chat message is in frame, if it is dispatches action to server to update it as read
+  useEffect(() => {
+    const node = elementRef.current;
+
+    if (!node) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !recipientHasRead) {
+        const reqBody = {
+          messageId: id,
+          recipientId: otherUser.id,
+          conversationId
+        };
+        putReadMessage(reqBody);
+      }
+    },
+      // options for IntersectionObserver 
+      {
+        root: null,
+        rootMargin: "0px",
+        threshold: 1.0
+      });
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+
+  }, [elementRef, id, otherUser.id, putReadMessage, recipientHasRead, conversationId]);
+
   return (
-    <Box className={classes.root}>
+    <Box className={classes.root} ref={elementRef}>
       <Avatar alt={otherUser.username} src={otherUser.photoUrl} className={classes.avatar}></Avatar>
       <Box>
         <Typography className={classes.usernameDate}>
@@ -49,4 +84,12 @@ const OtherUserBubble = (props) => {
   );
 };
 
-export default OtherUserBubble;
+const mapDispatchToProps = (dispatch) => {
+  return {
+    putReadMessage: (body) => {
+      dispatch(putReadMessage(body));
+    }
+  };
+};
+
+export default connect(null, mapDispatchToProps)(OtherUserBubble);

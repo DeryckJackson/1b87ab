@@ -1,5 +1,7 @@
 const router = require("express").Router();
-const { Conversation, Message } = require("../../db/models");
+const { parse } = require("dotenv");
+const { Op } = require("sequelize");
+const { User, Conversation, Message } = require("../../db/models");
 const onlineUsers = require("../../onlineUsers");
 
 // expects {recipientId, text, conversationId } in body (conversationId will be null if no conversation exists yet)
@@ -36,8 +38,100 @@ router.post("/", async (req, res, next) => {
       senderId,
       text,
       conversationId: conversation.id,
+      recipientHasRead: false
     });
     res.json({ message, sender });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put("/read", async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.sendStatus(401);
+    }
+
+    const userId = req.user.id;
+    const { conversationId, messageId, recipientId } = req.body;
+
+    let conversation = await Conversation.findOne({
+      where: {
+        id: conversationId
+      },
+      attributes: ["id"],
+      order: [[Message, "createdAt", "ASC"]],
+      include: [
+        { model: Message, order: ["createdAt", "ASC"] },
+        {
+          model: User,
+          as: "user1",
+          where: {
+            id: {
+              [Op.or]: [userId, recipientId]
+            },
+          },
+          attributes: ["id", "username", "photoUrl"],
+          required: false,
+        },
+        {
+          model: User,
+          as: "user2",
+          where: {
+            id: {
+              [Op.or]: [userId, recipientId]
+            },
+          },
+          attributes: ["id", "username", "photoUrl"],
+          required: false,
+        },
+      ]
+    });
+
+    if (conversation.user1.id !== recipientId && conversation.user2.id !== recipientId) {
+      return res.sendStatus(403);
+    }
+
+    let readMessageIds = [];
+
+    // Sets messages as read up to recieved messageId
+    for (let message of conversation.messages) {
+      if (!messageId !== message.id && recipientId === message.senderId
+        && !message.recipientHasRead) {
+        message.recipientHasRead = true;
+        readMessageIds.push(message.id);
+      }
+
+      if (messageId === message.id) {
+        message.recipientHasRead = true;
+        readMessageIds.push(message.id);
+        break;
+      }
+    }
+
+    await Message.update({ recipientHasRead: true }, {
+      where: {
+        id: {
+          [Op.in]: readMessageIds
+        }
+      }
+    });
+
+    const convoJSON = conversation.toJSON();
+
+    // set a property "otherUser" so that frontend will have easier access
+    if (convoJSON.user1) {
+      convoJSON.otherUser = convoJSON.user1;
+      delete convoJSON.user1;
+    } else if (convoJSON.user2) {
+      convoJSON.otherUser = convoJSON.user2;
+      delete convoJSON.user2;
+    }
+
+    convoJSON.latestMessageText = convoJSON.messages[convoJSON.messages.length - 1].text;
+
+
+    res.json(convoJSON);
   } catch (error) {
     next(error);
   }

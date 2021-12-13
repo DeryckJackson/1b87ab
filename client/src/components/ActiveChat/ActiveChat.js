@@ -4,6 +4,7 @@ import { Box } from "@material-ui/core";
 import { Input, Header, Messages } from "./index";
 import { connect } from "react-redux";
 
+
 const useStyles = makeStyles(() => ({
   root: {
     display: "flex",
@@ -47,7 +48,7 @@ const ActiveChat = (props) => {
           </Box>
         </>
       )}
-    </Box>
+    </Box >
   );
 };
 
