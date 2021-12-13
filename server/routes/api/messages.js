@@ -89,7 +89,7 @@ router.put("/read", async (req, res, next) => {
     });
 
     if (conversation.user1.id !== recipientId && conversation.user2.id !== recipientId) {
-      return res.sendStatus(401);
+      return res.sendStatus(403);
     }
 
     let readMessageIds = [];

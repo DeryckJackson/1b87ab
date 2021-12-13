@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Box, Typography } from "@material-ui/core";
+import { Box, Badge } from "@material-ui/core";
 import { BadgeAvatar, ChatContent } from "../Sidebar";
 import { makeStyles } from "@material-ui/core/styles";
 import { setActiveChat } from "../../store/activeConversation";
@@ -17,18 +17,6 @@ const useStyles = makeStyles((theme) => ({
       cursor: "grab"
     },
   },
-  unreadMessageNumber: {
-    marginLeft: "auto",
-    marginRight: 5,
-    backgroundColor: "rgb(63,146,255)",
-    color: "white",
-    fontSize: "14px",
-    lineHeight: "24px",
-    height: "24px",
-    width: "24px",
-    borderRadius: "50%",
-    textAlign: "center",
-  }
 }));
 
 const Chat = (props) => {
@@ -54,9 +42,7 @@ const Chat = (props) => {
       />
       <ChatContent conversation={conversation} unreadMessageCount={unreadMessageCount} />
       {unreadMessageCount > 0 &&
-        <Typography className={classes.unreadMessageNumber}>
-          {unreadMessageCount}
-        </Typography>
+        <Badge badgeContent={unreadMessageCount} color="primary" />
       }
     </Box>
   );

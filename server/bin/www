@@ -36,6 +36,7 @@ io.on("connection", (socket) => {
     if (!onlineUsers.includes(id)) {
       onlineUsers.push(id);
     }
+
     // send the user who just went online to everyone else who is already online
     socket.broadcast.emit("add-online-user", id);
   });
@@ -48,7 +49,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("new-read-message", data => {
-    socket.broadcast.emit("new-read-message", {
+    const { convo } = data;
+    const { otherUser } = convo;
+    socket.broadcast.to(otherUser.id).emit("new-read-message", {
       convo: data.convo
     });
   });
